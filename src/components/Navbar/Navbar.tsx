@@ -76,7 +76,7 @@ export const Navbar: React.FC<NavbarProps> = ({ mode, onModeChange }) => {
               Go Docs
             </a>
             <a 
-              href="https://github.com/luis198755/go_playground" 
+              href="https://github.com/luis198755/go_playGround_Json" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors text-sm"
@@ -119,7 +119,7 @@ export const Navbar: React.FC<NavbarProps> = ({ mode, onModeChange }) => {
                 Go Docs
               </a>
               <a 
-                href="https://github.com/luis198755/go_playground" 
+                href="https://github.com/luis198755/go_playGround_Json" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="block px-4 py-2 text-gray-400 hover:text-white hover:bg-[#3d3d3d] rounded-md transition-colors text-sm"
