@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navbar } from './components/Navbar/Navbar';
 import { Tabs } from './components/Editor/Tabs';
 import Editor from '@monaco-editor/react';
-import { Play, Share2, HelpCircle, Terminal as TerminalIcon, Download, Copy, FileX, Menu as MenuIcon, X as XIcon } from 'lucide-react';
+import { Play, Share2, HelpCircle, Terminal as TerminalIcon, Download, Copy, FileX, Menu as MenuIcon, X as XIcon, FolderInput } from 'lucide-react';
 import { TerminalOutput } from './components/Terminal/TerminalOutput';
 import { EditorSettings } from './components/Editor/EditorSettings';
 import { UserManual } from './components/UserManual/UserManual';
@@ -16,6 +16,7 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [output, setOutput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [tabs, setTabs] = useState<Tab[]>([{
     id: 'hello-world',
@@ -239,6 +240,44 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    
+    // Check if file type matches current mode
+    if ((mode === 'go' && fileExtension !== 'go') || 
+        (mode === 'json' && fileExtension !== 'json')) {
+      setOutput(`Error: Please import a ${mode.toUpperCase()} file in ${mode.toUpperCase()} mode`);
+      return;
+    }
+
+    try {
+      const content = await file.text();
+      const newId = `tab-${Date.now()}`;
+      const newTab: Tab = {
+        id: newId,
+        title: file.name,
+        code: content,
+        isExample: false
+      };
+      
+      setTabs(prev => [...prev, newTab]);
+      setActiveTabId(newId);
+      setSelectedExample('user-code');
+      setOutput(`Successfully imported ${file.name}`);
+    } catch (error) {
+      setOutput(`Error reading file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const examples = getCurrentExamples();
 
   return (
@@ -256,6 +295,20 @@ function App() {
                   </div>
                   <div className="flex items-center space-x-1">
                     <div className="hidden sm:flex items-center space-x-1 border-r border-gray-700 pr-2 mr-1">
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="p-1.5 rounded hover:bg-[#3d3d3d] text-gray-400 hover:text-white transition-colors"
+                        title="Import File"
+                      >
+                        <FolderInput size={16} />
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept={mode === 'go' ? '.go' : '.json'}
+                        onChange={handleFileImport}
+                        className="hidden"
+                      />
                       <button 
                         onClick={handleCopyCode}
                         className="p-1.5 rounded hover:bg-[#3d3d3d] text-gray-400 hover:text-white transition-colors"
@@ -308,6 +361,16 @@ function App() {
                   {isMobileMenuOpen && (
                     <div className="absolute right-4 mt-2 w-48 rounded-md shadow-lg bg-[#2d2d2d] ring-1 ring-black ring-opacity-5 z-50">
                       <div className="py-1" role="menu" aria-orientation="vertical">
+                        <button
+                          onClick={() => {
+                            fileInputRef.current?.click();
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-[#3d3d3d] flex items-center space-x-2"
+                        >
+                          <FolderInput size={14} />
+                          <span>Import File</span>
+                        </button>
                         <button
                           onClick={() => {
                             handleCopyCode();
